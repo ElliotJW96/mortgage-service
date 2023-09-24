@@ -10,18 +10,17 @@ import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 @Controller("/mortgages")
 public class MortgageController {
 
-    private final DataApiClient2 client;
+    private final DataApiClient client;
     private static final Logger LOG = LoggerFactory.getLogger(DataApiClient.class);
 
 
     @Inject
-    public MortgageController(DataApiClient2 client) {
+    public MortgageController(DataApiClient client) {
         this.client = client;
     }
 

@@ -18,6 +18,7 @@ public class Mortgage {
     String status;
     boolean residential;
     Double balance;
+    Double startingBalance;
     int termMonths;
     String productId;
     LocalDate productStartDate;
@@ -53,6 +54,13 @@ public class Mortgage {
     }
     public void setBalance(Double balance) {
         this.balance = balance;
+    }
+
+    public Double getStartingBalance() {
+        return startingBalance;
+    }
+    public void setStartingBalance(Double startingBalance) {
+        this.startingBalance = startingBalance;
     }
 
     public int getTermMonths() {
