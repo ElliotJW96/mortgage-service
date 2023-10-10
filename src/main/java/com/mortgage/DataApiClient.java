@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class DataApiClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataApiClient.class);
-    private static final String DATA_SERVICE_URL = "http://host.docker.internal:8082/data/customer/";
+    private static final String DATA_SERVICE_URL = "http://host.docker.internal:8082/data";
 
     HttpClient client;
 
@@ -38,11 +38,10 @@ public class DataApiClient {
      *
      * @param customerId The unique identifier of the customer.
      * @return ArrayList of Mortgage objects associated with the customer.
-     * @throws Exception If an error occurs while fetching the mortgage data.
      */
     public ArrayList<Mortgage> getMortgages(String customerId) {
         try {
-            String constructedUrl = DATA_SERVICE_URL + customerId + "/mortgages";
+            String constructedUrl = DATA_SERVICE_URL + "/customer/" + customerId + "/mortgages";
             LOG.info("Fetching mortgages from URL: {}", constructedUrl);
             HttpRequest<?> request = HttpRequest.GET(constructedUrl);
 
