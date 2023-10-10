@@ -118,14 +118,4 @@ public class Mortgage {
     public void setAddressLine2(String addressLine2) {
         this.addressLine2 = addressLine2;
     }
-
-    public void generateCurrentPropertyValue(){
-        Double startValue = getPropertyStartValue();
-        Double annualGrowth = 0.04;
-        int yearsElapsed = Period.between(getProductStartDate(), LocalDate.now()).getYears();
-
-
-        setPropertyCurrentValue((double) Math.round(startValue * Math.pow((1 + annualGrowth), yearsElapsed)));
-    }
-
 }

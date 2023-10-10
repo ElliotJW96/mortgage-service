@@ -10,38 +10,45 @@ import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Controller responsible for handling requests related to mortgages.
+ */
 @Controller("/mortgages")
 public class MortgageController {
 
     private final DataApiClient client;
-    private static final Logger LOG = LoggerFactory.getLogger(DataApiClient.class);
+    private final BusinessRules businessRules;
+    private static final Logger LOG = LoggerFactory.getLogger(MortgageController.class);
 
-
+    /**
+     * Constructor for MortgageController.
+     *
+     * @param client The client used to fetch mortgage data.
+     * @param businessRules The business rules service for filtering and validating mortgages.
+     */
     @Inject
-    public MortgageController(DataApiClient client) {
+    public MortgageController(DataApiClient client, BusinessRules businessRules) {
         this.client = client;
+        this.businessRules = businessRules;
     }
 
+    /**
+     * Endpoint to fetch a list of mortgages for a given customer ID.
+     *
+     * @param request The incoming HTTP request. Expected to contain a "customerId" header.
+     * @return A list of valid Mortgage objects associated with the customer.
+     * @throws HttpStatusException If an error occurs during data retrieval or processing.
+     */
     @Get
-    @Produces(MediaType.TEXT_JSON)
-    public ArrayList<Mortgage> mortgages(HttpRequest<?> request) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Mortgage> mortgages(HttpRequest<?> request) {
         try {
-            ArrayList<Mortgage> mortgages = client.getMortgages(request.getHeaders().get("customerId"));
-            // Apply business rules
-            ArrayList<Mortgage> validMortgages = new ArrayList<Mortgage>();
-
-            for (Mortgage mortgage : mortgages) {
-                mortgage.generateCurrentPropertyValue();
-                if(mortgage.getStatus().equals("OPEN")){
-                    validMortgages.add(mortgage);
-                }
-            }
-            // Return the modified list of mortgages - automatically serialised to JSON
-            return validMortgages;
+            List<Mortgage> mortgages = client.getMortgages(request.getHeaders().get("customerId"));
+            return businessRules.applyRules(mortgages);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Error fetching mortgages.", e);
             throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error fetching customer data.");
         }
     }
