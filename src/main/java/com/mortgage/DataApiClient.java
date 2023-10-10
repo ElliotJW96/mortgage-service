@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
+/**
+ * Client for interacting with the data service to fetch mortgage data.
+ */
 @Singleton
 public class DataApiClient {
 
@@ -20,45 +23,61 @@ public class DataApiClient {
 
     HttpClient client;
 
+    /**
+     * Constructor for DataApiClient.
+     *
+     * @param client The HTTP client for making requests.
+     */
     @Inject
     public DataApiClient(HttpClient client) {
         this.client = client;
     }
 
+    /**
+     * Retrieves a list of mortgages associated with the provided customer ID.
+     *
+     * @param customerId The unique identifier of the customer.
+     * @return ArrayList of Mortgage objects associated with the customer.
+     * @throws Exception If an error occurs while fetching the mortgage data.
+     */
     public ArrayList<Mortgage> getMortgages(String customerId) {
         try {
             String constructedUrl = DATA_SERVICE_URL + customerId + "/mortgages";
-            LOG.info("Constructed URL for data-service: " + constructedUrl);
+            LOG.info("Fetching mortgages from URL: {}", constructedUrl);
             HttpRequest<?> request = HttpRequest.GET(constructedUrl);
-            LOG.info(request.toString());
 
-            // Log raw response
+            // Logging the request
+            LOG.debug("HTTP Request: {}", request.toString());
+
+            // Log raw response for debugging purposes
             HttpResponse<String> rawResponse = client.toBlocking().exchange(request, String.class);
-            LOG.info("Raw Response Body: " + rawResponse.getBody().orElse("EMPTY"));
+            LOG.debug("Raw Response Body: {}", rawResponse.getBody().orElse("EMPTY"));
 
             // Deserialize using explicit type information
             HttpResponse<?> genericResponse = client.toBlocking().exchange(request, Argument.of(ArrayList.class, Mortgage.class));
             HttpResponse<ArrayList<Mortgage>> response = (HttpResponse<ArrayList<Mortgage>>) genericResponse;
 
             if (response.getStatus().getCode() >= 400) {
-                LOG.error("Received an error response: " + response.getStatus().getCode() + " - " + response.getStatus().getReason());
+                LOG.error("Received an error response: {} - {}", response.getStatus().getCode(), response.getStatus().getReason());
             } else if (!response.getBody().isPresent()) {
-                LOG.error("Response body is empty or null.");
+                LOG.error("Mortgage data response body is empty or null for customer ID: {}", customerId);
             } else {
                 ArrayList<Mortgage> mortgages = response.getBody().get();
                 if (mortgages.isEmpty()) {
-                    LOG.warn("Deserialized mortgage list is empty.");
+                    LOG.warn("Deserialized mortgage list is empty for customer ID: {}", customerId);
                 } else {
                     for (Mortgage mortgage : mortgages) {
-                        LOG.info("Deserialized Mortgage: " + mortgage.toString());
+                        LOG.debug("Deserialized Mortgage: {}", mortgage.toString());
                     }
                     return mortgages;
                 }
             }
         } catch (Exception e) {
-            LOG.error("Error fetching mortgage data.", e);
+            LOG.error("Error fetching mortgage data for customer ID: {}", customerId, e);
             throw e;
         }
+
+        LOG.warn("Returning an empty mortgage list for customer ID: {} due to issues in data retrieval.", customerId);
         return new ArrayList<>(); // Return an empty list in case of issues to avoid NullPointerException
     }
 }
